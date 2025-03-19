@@ -20,7 +20,7 @@ public class BanchoClient : IBanchoClient
 	private readonly int _rateLimitIntervalSeconds;
 	private StreamReader? _reader;
 	private DateTime _resetPeriod = DateTime.MinValue;
-	private TcpClient? _tcp;
+	public TcpClient? TcpClient { get; set; }
 	private StreamWriter? _writer;
 	public event Action? OnPingReceived;
 	public BanchoClientConfig ClientConfig { get; set; }
@@ -39,7 +39,7 @@ public class BanchoClient : IBanchoClient
 	public event Action<IChatChannel> OnChannelParted;
 	public event Action<string> OnUserQueried;
 	public IList<IChatChannel> Channels { get; } = new List<IChatChannel>();
-	public bool IsConnected => _tcp?.Connected ?? false;
+	public bool IsConnected => TcpClient?.Connected ?? false;
 	public bool IsAuthenticated { get; private set; }
 
 	public async Task ConnectAsync()
@@ -49,10 +49,10 @@ public class BanchoClient : IBanchoClient
 			return;
 		}
 
-		_tcp = new TcpClient(ClientConfig.Host, ClientConfig.Port);
+		TcpClient = new TcpClient(ClientConfig.Host, ClientConfig.Port);
 		OnConnected?.Invoke();
 
-		var ns = _tcp.GetStream();
+		var ns = TcpClient.GetStream();
 		_reader = new StreamReader(ns);
 		_writer = new StreamWriter(ns)
 		{
@@ -437,7 +437,7 @@ public class BanchoClient : IBanchoClient
 		if (disposing)
 		{
 			_reader?.Dispose();
-			_tcp?.Dispose();
+			TcpClient?.Dispose();
 			_writer?.Dispose();
 
 			if (IsConnected)
